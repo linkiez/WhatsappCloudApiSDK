@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "SDK TypeScript (ESM) para WhatsApp Cloud API.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/linkiez/WhatsappCloudApiSDK"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
