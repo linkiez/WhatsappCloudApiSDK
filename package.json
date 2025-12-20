@@ -1,6 +1,6 @@
 {
   "name": "@linkiez/whatsapp-cloud-api-sdk",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "SDK TypeScript (ESM) para WhatsApp Cloud API.",
   "license": "MIT",
   "type": "module",
