@@ -5,6 +5,20 @@
 
 * ajustar ordem de exports e workflow ([79e34ad](https://github.com/linkiez/WhatsappCloudApiSDK/commit/79e34ad7b62f350af34e0b4b15dfb133f35ec155))
 * **ci:** corrigir release com corepack ([ee06773](https://github.com/linkiez/WhatsappCloudApiSDK/commit/ee067737b6bd55036800c60722723234beca8d86))
+* definir repository.url para validar provenance do npm ([4c12176](https://github.com/linkiez/WhatsappCloudApiSDK/commit/4c12176e2f8d50d1aa272a0460aaee527843a5ac))
+
+
+### Features
+
+* **sdk:** preparar sdk e publicar como pacote privado ([c89667c](https://github.com/linkiez/WhatsappCloudApiSDK/commit/c89667c4291347da180527159efa1960a7032957))
+
+# 1.0.0 (2025-12-20)
+
+
+### Bug Fixes
+
+* ajustar ordem de exports e workflow ([79e34ad](https://github.com/linkiez/WhatsappCloudApiSDK/commit/79e34ad7b62f350af34e0b4b15dfb133f35ec155))
+* **ci:** corrigir release com corepack ([ee06773](https://github.com/linkiez/WhatsappCloudApiSDK/commit/ee067737b6bd55036800c60722723234beca8d86))
 
 
 ### Features
