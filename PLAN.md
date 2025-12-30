@@ -39,6 +39,26 @@
   - Rate limit/backoff e padronização de erros
   - Gestão (templates, phone numbers, analytics) e itens avançados (grupos/calling)
 
+### Progresso neste repositório (WhatsappCloudApiSDK)
+
+> Observação: este repo é um SDK. Ele cobre peças reutilizáveis (client/services/helpers) e **não** contém o `WhatsAppCloudProvider` nem controllers de webhook do JCMserver3.
+
+- ✅ Envio básico
+  - `sendTextMessage` e `sendTemplateMessage`: [src/whatsapp/WhatsAppClient.ts](src/whatsapp/WhatsAppClient.ts)
+- ✅ Mídia (ciclo completo)
+  - Upload / get URL / download / delete + testes: [src/whatsapp/WhatsAppMediaService.ts](src/whatsapp/WhatsAppMediaService.ts)
+- ✅ Janela 24h (policy)
+  - Decisão `template-only` fora da janela + testes: [src/whatsapp/WhatsAppSendPolicy.ts](src/whatsapp/WhatsAppSendPolicy.ts)
+- ✅ Retry/backoff
+  - Helpers de throttling/backoff + testes: [src/whatsapp/WhatsAppRetry.ts](src/whatsapp/WhatsAppRetry.ts)
+- ✅ Gestão (Business Management API)
+  - Templates: list + CRUD (`create/update/delete/get`) + paginação + testes: [src/whatsapp/WhatsAppManagementService.ts](src/whatsapp/WhatsAppManagementService.ts)
+  - Phone numbers e WABA fields: [src/whatsapp/WhatsAppManagementService.ts](src/whatsapp/WhatsAppManagementService.ts)
+- ✅ Advanced (gated)
+  - Groups/Calling client + testes (habilitado via `advanced.enabled`): [src/whatsapp/WhatsAppAdvancedService.ts](src/whatsapp/WhatsAppAdvancedService.ts)
+- ✅ Erros padronizados do SDK
+  - `WhatsAppApiError` com `statusCode`, `raw`, `errorCode`, `errorSubcode`: [src/whatsapp/WhatsAppErrors.ts](src/whatsapp/WhatsAppErrors.ts)
+
 ## Roadmap executável (milestones)
 
 > Meta: cada milestone deve fechar com testes unitários verdes e sem breaking change no contrato atual de envio (`text` e `template`).
@@ -58,7 +78,7 @@
     - Testes adicionados por tipo validam o payload gerado.
     - `text` e `template` continuam funcionando sem alteração no caller.
 
-- [ ] M2 — Mídia: upload/download/delete + envio por `mediaId`/`link`
+- [ ] M2 — Mídia: upload/download/delete + envio por `mediaId`/`link` (SDK: ✅ ciclo de mídia)
   - Objetivo: implementar o ciclo de mídia e habilitar `image/video/audio/document/sticker`.
   - Arquivos
     - Criar: `src/integrations/message/providers/whatsapp/WhatsAppMediaService.ts`
@@ -86,7 +106,7 @@
     - Testes novos cobrindo inbound por tipo + erros.
     - Dedup continua funcional (mesmo payload não duplica estado/eventos).
 
-- [ ] M4 — Janela 24h: política de envio + fallback para template
+- [ ] M4 — Janela 24h: política de envio + fallback para template (SDK: ✅ policy)
   - Objetivo: impedir envio de tipos não permitidos fora da janela e padronizar comportamento.
   - Arquivos
     - Criar: `src/integrations/message/providers/whatsapp/WhatsAppSendPolicy.ts`
@@ -97,7 +117,7 @@
     - Testes cobrem “janela aberta” vs “janela fechada”.
     - Fora da janela, comportamento é previsível (erro claro ou coerção para template, conforme decisão do produto).
 
-- [ ] M5 — Rate limit/backoff + idempotência de envio
+- [ ] M5 — Rate limit/backoff + idempotência de envio (SDK: ✅ helpers de retry/backoff)
   - Objetivo: reduzir falhas por throttling/pairing e melhorar resiliência.
   - Arquivos
     - Criar/Atualizar: helper de retry/backoff (na pasta de whatsapp) + testes
@@ -107,7 +127,7 @@
     - Testes simulam erro de throttling e verificam backoff/retry.
     - Nenhum retry infinito; logs não vazam segredos.
 
-- [ ] M6 — Gestão (Business Management API): templates, phone numbers, analytics
+- [ ] M6 — Gestão (Business Management API): templates, phone numbers, analytics (SDK: ✅ templates CRUD + list phone numbers)
   - Objetivo: cobrir a superfície de gestão necessária para operação (sem UI inicialmente).
   - Arquivos
     - Criar: `src/integrations/message/providers/whatsapp/WhatsAppManagementService.ts`
@@ -115,7 +135,7 @@
   - Critérios de aceite
     - Testes de contrato via mocks HTTP para listagem/consulta/ações principais.
 
-- [ ] M7 — Advanced (gated): grupos e calling
+- [ ] M7 — Advanced (gated): grupos e calling (SDK: ✅ client gated)
   - Objetivo: incluir suporte quando a conta/endpoint estiver disponível.
   - Critérios de aceite
     - Implementação condicionada a endpoints estáveis na doc e habilitação na conta.
