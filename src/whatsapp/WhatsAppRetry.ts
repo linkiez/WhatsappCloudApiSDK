@@ -1,3 +1,6 @@
+import type { JsonValue } from './Json.js';
+import { isJsonObject } from './Json.js';
+
 export type WhatsAppRetryConfig = {
   maxAttempts: number;
   baseDelayMs: number;
@@ -12,15 +15,25 @@ const DEFAULT_RETRY_CONFIG: WhatsAppRetryConfig = {
   jitterRatio: 0.1,
 };
 
-function parseWhatsAppErrorCode(body: unknown): number | undefined {
-  const candidate = body as { error?: { code?: unknown } } | undefined;
-  const code = candidate?.error?.code;
+function parseWhatsAppErrorCode(body: JsonValue | undefined): number | undefined {
+  if (!isJsonObject(body)) return undefined;
+  const error = body['error'];
+  if (!isJsonObject(error)) return undefined;
+
+  const code = error['code'];
   return typeof code === 'number' && Number.isFinite(code) ? code : undefined;
 }
 
+/**
+ * Checks whether an API error should be retried.
+ *
+ * @param status - HTTP status code
+ * @param body - Parsed JSON response body (optional)
+ * @returns True when the error is considered retryable
+ */
 export function isWhatsAppRetryableError(
   status: number,
-  body: unknown,
+  body: JsonValue | undefined,
 ): boolean {
   if (status === 429) return true;
   if (status >= 500 && status <= 599) return true;
@@ -32,6 +45,13 @@ export function isWhatsAppRetryableError(
   return false;
 }
 
+/**
+ * Calculates exponential backoff delay (with jitter).
+ *
+ * @param attempt - Current attempt number (1-based)
+ * @param overrides - Optional retry configuration overrides
+ * @returns Backoff delay in milliseconds
+ */
 export function calculateBackoffMs(
   attempt: number,
   overrides: Partial<WhatsAppRetryConfig> = {},
@@ -46,12 +66,24 @@ export function calculateBackoffMs(
   return Math.round(Math.min(capped + jitter, config.maxDelayMs));
 }
 
+/**
+ * Sleeps for the requested amount of time.
+ *
+ * @param delayMs - Delay in milliseconds
+ * @returns Promise that resolves after the delay
+ */
 export async function sleep(delayMs: number): Promise<void> {
   await new Promise<void>((resolve) => {
     globalThis.setTimeout(resolve, delayMs);
   });
 }
 
+/**
+ * Builds a retry configuration from defaults and overrides.
+ *
+ * @param overrides - Optional retry configuration overrides
+ * @returns Merged retry configuration
+ */
 export function getWhatsAppRetryConfig(
   overrides: Partial<WhatsAppRetryConfig> = {},
 ): WhatsAppRetryConfig {
