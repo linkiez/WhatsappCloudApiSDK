@@ -1,13 +1,24 @@
+import type { FormData as UndiciFormData } from 'undici';
 import { request as undiciRequest } from 'undici';
+
+import type { JsonValue } from './Json.js';
+
+export type WhatsAppRequestBody =
+  | string
+  | Uint8Array
+  | ArrayBuffer
+  | UndiciFormData
+  | null;
+
 
 export type WhatsAppRequestInit = {
   method: string;
   headers?: Record<string, string>;
-  body?: unknown;
+  body?: WhatsAppRequestBody;
 };
 
 export type WhatsAppResponseBody = {
-  json: () => Promise<unknown>;
+  json: () => Promise<JsonValue>;
   text: () => Promise<string>;
   arrayBuffer: () => Promise<ArrayBuffer>;
 };
@@ -23,12 +34,12 @@ export type WhatsAppRequestFn = (
 ) => Promise<WhatsAppResponse>;
 
 export const defaultRequestFn: WhatsAppRequestFn = async (url, init) => {
-  return (await undiciRequest(url, init as never)) as unknown as WhatsAppResponse;
+  return (await undiciRequest(url, init as never)) as WhatsAppResponse;
 };
 
 export async function readJsonSafely(
-  body: { json: () => Promise<unknown> } | undefined,
-): Promise<unknown> {
+  body: { json: () => Promise<JsonValue> } | undefined,
+): Promise<JsonValue | undefined> {
   if (!body) return undefined;
 
   try {

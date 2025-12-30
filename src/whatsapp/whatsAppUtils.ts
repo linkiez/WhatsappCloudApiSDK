@@ -1,13 +1,20 @@
-export function isNonEmptyString(value: unknown): value is string {
+import type { JsonValue } from './Json.js';
+
+export function isNonEmptyString(value: JsonValue | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
 export function normalizeBaseUrl(baseUrl: string): string {
-  return baseUrl.replace(/\/+$/g, '');
+  let value = baseUrl;
+  while (value.endsWith('/')) value = value.slice(0, -1);
+  return value;
 }
 
 export function normalizePath(path: string): string {
-  return path.replace(/^\/+/, '').replace(/\/+$/g, '');
+  let value = path;
+  while (value.startsWith('/')) value = value.slice(1);
+  while (value.endsWith('/')) value = value.slice(0, -1);
+  return value;
 }
 
 export function joinPath(left: string, right: string): string {
