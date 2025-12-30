@@ -1,17 +1,29 @@
 import { WhatsAppClient } from './WhatsAppClient';
 
+import type { JsonValue } from './Json';
+import type {
+    WhatsAppRequestFn,
+    WhatsAppRequestInit,
+    WhatsAppResponse,
+} from './WhatsAppRequest';
+
+function createMockResponse(statusCode: number, json: JsonValue): WhatsAppResponse {
+  return {
+    statusCode,
+    body: {
+      json: async () => json,
+      text: async () => JSON.stringify(json),
+      arrayBuffer: async () => new TextEncoder().encode(JSON.stringify(json)).buffer,
+    },
+  };
+}
+
 describe('WhatsAppClient', () => {
   it('should send text message and return providerMessageId', async () => {
-    const requestFn = async () => {
-      return {
-        statusCode: 200,
-        body: {
-          json: async () => ({
-            messages: [{ id: 'wamid.TEST' }],
-          }),
-        },
-      } as any;
-    };
+    const requestFn: WhatsAppRequestFn = async () =>
+      createMockResponse(200, {
+        messages: [{ id: 'wamid.TEST' }],
+      });
 
     const client = new WhatsAppClient({
       apiVersion: 'v21.0',
@@ -29,19 +41,14 @@ describe('WhatsAppClient', () => {
   });
 
   it('should send template message with language code', async () => {
-    const calls: any[] = [];
+    const calls: Array<{ init: WhatsAppRequestInit }> = [];
 
-    const requestFn = async (_url: any, init: any) => {
+    const requestFn: WhatsAppRequestFn = async (_url, init) => {
       calls.push({ init });
 
-      return {
-        statusCode: 200,
-        body: {
-          json: async () => ({
-            messages: [{ id: 'wamid.TEMPLATE' }],
-          }),
-        },
-      } as any;
+      return createMockResponse(200, {
+        messages: [{ id: 'wamid.TEMPLATE' }],
+      });
     };
 
     const client = new WhatsAppClient({
@@ -59,21 +66,18 @@ describe('WhatsAppClient', () => {
 
     expect(result.providerMessageId).toBe('wamid.TEMPLATE');
 
-    const body = JSON.parse(calls[0].init.body);
+    const firstCall = calls[0];
+    expect(firstCall).toBeDefined();
+
+    const body = JSON.parse(String(firstCall?.init.body));
     expect(body.type).toBe('template');
     expect(body.template.name).toBe('hello_world');
     expect(body.template.language.code).toBe('pt_BR');
   });
 
   it('should throw when response is not 2xx', async () => {
-    const requestFn = async () => {
-      return {
-        statusCode: 500,
-        body: {
-          json: async () => ({ error: { message: 'fail' } }),
-        },
-      } as any;
-    };
+    const requestFn: WhatsAppRequestFn = async () =>
+      createMockResponse(500, { error: { message: 'fail' } });
 
     const client = new WhatsAppClient({
       apiVersion: 'v21.0',
@@ -87,6 +91,6 @@ describe('WhatsAppClient', () => {
         to: '5511999999999',
         text: 'Hello',
       }),
-    ).rejects.toThrow('WhatsApp API error: 500');
+    ).rejects.toThrow('WhatsApp Graph API request failed');
   });
 });
