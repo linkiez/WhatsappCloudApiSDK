@@ -1,8 +1,9 @@
+import type { JsonObject, JsonValue } from './Json.js';
 import { WhatsAppApiError, WhatsAppValidationError } from './WhatsAppErrors.js';
 import {
-    defaultRequestFn,
-    readJsonSafely,
-    type WhatsAppRequestFn,
+  defaultRequestFn,
+  readJsonSafely,
+  type WhatsAppRequestFn,
 } from './WhatsAppRequest.js';
 import { buildGraphUrl, isNonEmptyString, joinPath } from './whatsAppUtils.js';
 
@@ -27,12 +28,12 @@ export type WhatsAppAdvancedRequestParams = {
   path: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   query?: Record<string, string | undefined>;
-  body?: unknown;
+  body?: JsonValue;
   basePathOverride?: string;
 };
 
 export type WhatsAppAdvancedRequestResult = {
-  raw: unknown;
+  raw: JsonValue | undefined;
 };
 
 export type WhatsAppCallingConnectParams = {
@@ -45,10 +46,7 @@ export type WhatsAppCallingControlParams = {
   sdp?: string;
 };
 
-export type WhatsAppCallingSettings = {
-  status?: string;
-  [key: string]: unknown;
-};
+export type WhatsAppCallingSettings = JsonObject;
 
 export type WhatsAppCallingUpdateSettingsParams = {
   calling: WhatsAppCallingSettings;
@@ -152,15 +150,15 @@ export default class WhatsAppAdvancedClient {
 
   private async requestJson(
     url: string,
-    init: { method: string; body?: unknown },
-  ): Promise<unknown> {
+    init: { method: string; body?: JsonValue },
+  ): Promise<JsonValue | undefined> {
     const response = await this.requestFn(url, {
       method: init.method,
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      ...(init.body !== undefined ? { body: JSON.stringify(init.body) } : {}),
+      ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
     });
 
     const responseBody = await readJsonSafely(response.body);
@@ -169,6 +167,7 @@ export default class WhatsAppAdvancedClient {
       throw new WhatsAppApiError('WhatsApp Graph API request failed', {
         statusCode: response.statusCode,
         responseBody,
+        raw: responseBody,
       });
     }
 
@@ -405,7 +404,11 @@ export default class WhatsAppAdvancedClient {
       throw new WhatsAppValidationError('WhatsApp messageId is required');
     }
 
-    const pin: Record<string, unknown> = {
+    const pin: {
+      type: 'pin' | 'unpin';
+      message_id: string;
+      expirationDays?: number;
+    } = {
       type: operation,
       message_id: params.messageId,
     };
@@ -479,7 +482,12 @@ export default class WhatsAppAdvancedClient {
       throw new WhatsAppValidationError('WhatsApp call sdp is required');
     }
 
-    const body: Record<string, unknown> = {
+    const body: {
+      messaging_product: 'whatsapp';
+      action: 'pre_accept' | 'accept' | 'reject' | 'terminate';
+      call_id: string;
+      sdp?: string;
+    } = {
       messaging_product: 'whatsapp',
       action,
       call_id: params.callId,

@@ -1,6 +1,8 @@
 import { Blob, Buffer } from 'node:buffer';
 import { FormData } from 'undici';
 
+import type { JsonValue } from './Json.js';
+import { isJsonObject } from './Json.js';
 import { WhatsAppApiError, WhatsAppValidationError } from './WhatsAppErrors.js';
 import {
     defaultRequestFn,
@@ -105,17 +107,20 @@ export default class WhatsAppMediaClient {
       throw new WhatsAppApiError('WhatsApp media upload failed', {
         statusCode: response.statusCode,
         responseBody: body,
+        raw: body,
       });
     }
 
     const mediaId = (() => {
-      const parsed = body as { id?: unknown };
-      return isNonEmptyString(parsed?.id) ? String(parsed.id) : undefined;
+      if (!isJsonObject(body)) return undefined;
+      const id = body['id'];
+      return isNonEmptyString(id) ? id : undefined;
     })();
 
     if (!mediaId) {
       throw new WhatsAppApiError('WhatsApp media upload returned invalid body', {
         responseBody: body,
+        raw: body,
       });
     }
 
@@ -124,7 +129,7 @@ export default class WhatsAppMediaClient {
 
   async getMediaUrl(
     params: GetWhatsAppMediaUrlParams,
-  ): Promise<{ url: string; raw?: unknown }> {
+  ): Promise<{ url: string; raw?: JsonValue }> {
     if (!isNonEmptyString(params.mediaId)) {
       throw new WhatsAppValidationError('mediaId is required');
     }
@@ -145,17 +150,20 @@ export default class WhatsAppMediaClient {
       throw new WhatsAppApiError('WhatsApp get media url failed', {
         statusCode: response.statusCode,
         responseBody: body,
+        raw: body,
       });
     }
 
     const mediaUrl = (() => {
-      const parsed = body as { url?: unknown };
-      return isNonEmptyString(parsed?.url) ? String(parsed.url) : undefined;
+      if (!isJsonObject(body)) return undefined;
+      const urlValue = body['url'];
+      return isNonEmptyString(urlValue) ? urlValue : undefined;
     })();
 
     if (!mediaUrl) {
       throw new WhatsAppApiError('WhatsApp get media url returned invalid body', {
         responseBody: body,
+        raw: body,
       });
     }
 
@@ -181,6 +189,7 @@ export default class WhatsAppMediaClient {
       throw new WhatsAppApiError('WhatsApp download media failed', {
         statusCode: response.statusCode,
         responseBody: body,
+        raw: body,
       });
     }
 
@@ -209,6 +218,7 @@ export default class WhatsAppMediaClient {
       throw new WhatsAppApiError('WhatsApp delete media failed', {
         statusCode: response.statusCode,
         responseBody: body,
+        raw: body,
       });
     }
   }

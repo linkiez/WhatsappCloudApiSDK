@@ -1,15 +1,36 @@
 import WhatsAppMediaClient from './WhatsAppMediaService';
 
+import type { JsonValue } from './Json';
+import type {
+    WhatsAppRequestFn,
+    WhatsAppRequestInit,
+    WhatsAppResponse,
+} from './WhatsAppRequest';
+
+function createMockResponse(
+  statusCode: number,
+  json: JsonValue,
+  arrayBufferOverride?: ArrayBuffer,
+): WhatsAppResponse {
+  const jsonText = JSON.stringify(json);
+  return {
+    statusCode,
+    body: {
+      json: async () => json,
+      text: async () => jsonText,
+      arrayBuffer: async () =>
+        arrayBufferOverride ?? new TextEncoder().encode(jsonText).buffer,
+    },
+  };
+}
+
 describe('WhatsAppMediaClient', () => {
   it('should upload media and return mediaId', async () => {
-    const calls: any[] = [];
+    const calls: Array<{ url: string; init: WhatsAppRequestInit }> = [];
 
-    const requestFn = async (url: any, init: any) => {
+    const requestFn: WhatsAppRequestFn = async (url, init) => {
       calls.push({ url: String(url), init });
-      return {
-        statusCode: 200,
-        body: { json: async () => ({ id: 'media.1' }) },
-      } as any;
+      return createMockResponse(200, { id: 'media.1' });
     };
 
     const client = new WhatsAppMediaClient({
@@ -26,18 +47,14 @@ describe('WhatsAppMediaClient', () => {
     });
 
     expect(result.mediaId).toBe('media.1');
-    expect(calls[0].url).toBe('https://graph.facebook.com/v20.0/123/media');
-    expect(calls[0].init.method).toBe('POST');
-    expect(calls[0].init.headers.Authorization).toBe('Bearer token');
+    expect(calls[0]?.url).toBe('https://graph.facebook.com/v20.0/123/media');
+    expect(calls[0]?.init.method).toBe('POST');
+    expect(calls[0]?.init.headers?.Authorization).toBe('Bearer token');
   });
 
   it('should get media url', async () => {
-    const requestFn = async () => {
-      return {
-        statusCode: 200,
-        body: { json: async () => ({ url: 'https://example.com/file' }) },
-      } as any;
-    };
+    const requestFn: WhatsAppRequestFn = async () =>
+      createMockResponse(200, { url: 'https://example.com/file' });
 
     const client = new WhatsAppMediaClient({
       accessToken: 'token',
@@ -51,15 +68,8 @@ describe('WhatsAppMediaClient', () => {
   });
 
   it('should download media bytes', async () => {
-    const requestFn = async () => {
-      return {
-        statusCode: 200,
-        body: {
-          json: async () => ({}),
-          arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
-        },
-      } as any;
-    };
+    const requestFn: WhatsAppRequestFn = async () =>
+      createMockResponse(200, {}, new Uint8Array([1, 2, 3]).buffer);
 
     const client = new WhatsAppMediaClient({
       accessToken: 'token',
@@ -76,13 +86,10 @@ describe('WhatsAppMediaClient', () => {
   });
 
   it('should delete media', async () => {
-    const calls: any[] = [];
-    const requestFn = async (url: any, init: any) => {
+    const calls: Array<{ url: string; init: WhatsAppRequestInit }> = [];
+    const requestFn: WhatsAppRequestFn = async (url, init) => {
       calls.push({ url: String(url), init });
-      return {
-        statusCode: 200,
-        body: { json: async () => ({ success: true }) },
-      } as any;
+      return createMockResponse(200, { success: true });
     };
 
     const client = new WhatsAppMediaClient({
@@ -94,8 +101,8 @@ describe('WhatsAppMediaClient', () => {
 
     await client.deleteMedia({ mediaId: 'media.1' });
 
-    expect(calls[0].url).toBe('https://graph.facebook.com/v20.0/media.1');
-    expect(calls[0].init.method).toBe('DELETE');
-    expect(calls[0].init.headers.Authorization).toBe('Bearer token');
+    expect(calls[0]?.url).toBe('https://graph.facebook.com/v20.0/media.1');
+    expect(calls[0]?.init.method).toBe('DELETE');
+    expect(calls[0]?.init.headers?.Authorization).toBe('Bearer token');
   });
 });

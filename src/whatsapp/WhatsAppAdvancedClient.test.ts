@@ -1,15 +1,30 @@
 import WhatsAppAdvancedClient from './WhatsAppAdvancedService';
 
+import type { JsonValue } from './Json';
+import type {
+    WhatsAppRequestFn,
+    WhatsAppRequestInit,
+    WhatsAppResponse,
+} from './WhatsAppRequest';
+
+function createMockResponse(statusCode: number, json: JsonValue): WhatsAppResponse {
+  return {
+    statusCode,
+    body: {
+      json: async () => json,
+      text: async () => JSON.stringify(json),
+      arrayBuffer: async () => new TextEncoder().encode(JSON.stringify(json)).buffer,
+    },
+  };
+}
+
 describe('WhatsAppAdvancedClient', () => {
   it('should call groups endpoint using configured base path', async () => {
-    const calls: any[] = [];
+    const calls: Array<{ url: string; init: WhatsAppRequestInit }> = [];
 
-    const requestFn = async (url: any, init: any) => {
+    const requestFn: WhatsAppRequestFn = async (url, init) => {
       calls.push({ url: String(url), init });
-      return {
-        statusCode: 200,
-        body: { json: async () => ({ ok: true }) },
-      } as any;
+      return createMockResponse(200, { ok: true });
     };
 
     const client = new WhatsAppAdvancedClient({
@@ -30,8 +45,8 @@ describe('WhatsAppAdvancedClient', () => {
     });
 
     expect(result.raw).toEqual({ ok: true });
-    expect(calls[0].url).toContain('/v20.0/whatsapp_business_accounts/123/groups');
-    expect(calls[0].init.headers.Authorization).toBe('Bearer token');
+    expect(calls[0]?.url).toContain('/v20.0/whatsapp_business_accounts/123/groups');
+    expect(calls[0]?.init.headers?.Authorization).toBe('Bearer token');
   });
 
   it('should throw when advanced is disabled', async () => {
@@ -41,9 +56,9 @@ describe('WhatsAppAdvancedClient', () => {
       advanced: {
         enabled: false,
       },
-      requestFn: (async () => {
+      requestFn: async () => {
         throw new Error('should not call');
-      }) as any,
+      },
     });
 
     await expect(
