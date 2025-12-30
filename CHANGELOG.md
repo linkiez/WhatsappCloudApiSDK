@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/linkiez/WhatsappCloudApiSDK/compare/v1.0.0...v1.1.0) (2025-12-30)
+
+
+### Features
+
+* adicionar sendMessage tipado no WhatsAppClient ([9110cf2](https://github.com/linkiez/WhatsappCloudApiSDK/commit/9110cf2ab07c25c65312d8d4cb353f6fe63c55ea))
+
 # 1.0.0 (2025-12-20)
 
 
