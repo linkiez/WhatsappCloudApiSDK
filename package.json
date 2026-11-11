@@ -28,6 +28,7 @@
     "release": "semantic-release"
   },
   "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
   "packageManager": "yarn@4.12.0",
