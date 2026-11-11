@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/linkiez/WhatsappCloudApiSDK/compare/v1.1.0...v1.1.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **ci:** corrigir setup do Yarn 4 ([68ff97c](https://github.com/linkiez/WhatsappCloudApiSDK/commit/68ff97ce3071615934c3ce812bc2203995f23055))
+
 # [1.1.0](https://github.com/linkiez/WhatsappCloudApiSDK/compare/v1.0.0...v1.1.0) (2025-12-30)
 
 
